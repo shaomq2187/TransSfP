@@ -95,15 +95,15 @@ The key idea of our paper is the physics-based prior confidence, which is inspir
 
 First give our conclusion: **the noise in AoLP map is caused by the uncertainty of the dominance of the specular and diffuse components of the background.**
 
-The specular reflection and diffuse reflection models are often used in SfP problems to calculate the surface normals. Here we only care about the AoLP. The AoLP the specular($\psi_s$) and diffuse($\psi_d$) components are related to the azimuth$\phi$ of the surface normal as follows:
+The specular reflection and diffuse reflection models are often used in SfP problems to calculate the surface normals. Here we only care about the AoLP. The specular($\psi_s$) and diffuse($\psi_d$) components are related to the azimuth angle $\phi$ of the surface normal as follows:
 
 ![CodeCogsEqn (3)](https://raw.githubusercontent.com/s1752729916/githubsshaomq.github.iogithub/master/CodeCogsEqn%20(3).svg)
 
-The reflected light$I_t(\theta_{pol})$  of the background consists of specular$I_s(\theta_{pol})$ and diffuse$I_d(\theta_{pol})$ components:
+The reflected light $I_t(\theta_{pol})$  of the background consists of specular $I_s(\theta_{pol})$ and diffuse $I_d(\theta_{pol})$ components:
 
 ![CodeCogsEqn (2)](https://raw.githubusercontent.com/s1752729916/githubsshaomq.github.iogithub/master/CodeCogsEqn%20(2).svg)
 
-where $\theta_{pol}$ represents the angle of polarizer, $I_s, I_d$ are the average intensity of the specular and diffuse components. $\rho_s, \rho_d$ are the DoLP of the specular and diffuse components, respectively. 
+where  $\theta_{pol}$  represents the angle of polarizer, $I_s, I_d$ are the average intensity of the specular and diffuse components. $\rho_s, \rho_d$ are the DoLP of the specular and diffuse components, respectively. 
 
 Therefore, the AoLP of the background reflected light $\psi_t$ can be written as:
 
