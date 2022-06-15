@@ -95,29 +95,29 @@ The key idea of our paper is the physics-based prior confidence, which is inspir
 
 First give our conclusion: **the noise in AoLP map is caused by the uncertainty of the dominance of the specular and diffuse components of the background.**
 
-The specular reflection and diffuse reflection models are often used in SfP problems to calculate the surface normals. Here we only care about the AoLP. The specular($\psi_s$) and diffuse($\psi_d$) components are related to the azimuth angle $\phi$ of the surface normal as follows:
+The specular reflection and diffuse reflection models are often used in SfP problems to calculate the surface normals. Here we only care about the AoLP. The specular(![psi_s](https://latex.codecogs.com/svg.image?\psi_s) and diffuse(![psi_d](https://latex.codecogs.com/svg.image?\psi_d)) components are related to the azimuth angle ![phi](https://latex.codecogs.com/svg.image?\phi) of the surface normal as follows:
 
 ![CodeCogsEqn (3)](https://raw.githubusercontent.com/s1752729916/githubsshaomq.github.iogithub/master/CodeCogsEqn%20(3).svg)
 
-The reflected light $I_t(\theta_{pol})$  of the background consists of specular $I_s(\theta_{pol})$ and diffuse $I_d(\theta_{pol})$ components:
+The reflected light ![I_t](https://latex.codecogs.com/svg.image?I_t(\theta_{pol}))  of the background consists of specular ![I_s](https://latex.codecogs.com/svg.image?I_s(\theta_{pol})) and diffuse ![I_d](https://latex.codecogs.com/svg.image?I_d(\theta_{pol})) components:
 
 ![CodeCogsEqn (2)](https://raw.githubusercontent.com/s1752729916/githubsshaomq.github.iogithub/master/CodeCogsEqn%20(2).svg)
 
-where  $\theta_{pol}$  represents the angle of polarizer, $I_s, I_d$ are the average intensity of the specular and diffuse components. $\rho_s, \rho_d$ are the DoLP of the specular and diffuse components, respectively. 
+where  ![theta_pol](https://latex.codecogs.com/svg.image?\theta_{pol})  represents the angle of polarizer,  ![1](https://latex.codecogs.com/svg.image?I_s,I_d) are the average intensity of the specular and diffuse components.  ![1](https://latex.codecogs.com/svg.image?\rho_s,\rho_d) are the DoLP of the specular and diffuse components, respectively. 
 
-Therefore, the AoLP of the background reflected light $\psi_t$ can be written as:
+Therefore, the AoLP of the background reflected light ![1](https://latex.codecogs.com/svg.image?\psi_t) can be written as:
 
 ![CodeCogsEqn (4)](https://raw.githubusercontent.com/s1752729916/githubsshaomq.github.iogithub/master/CodeCogsEqn%20(4).svg)
 
-When the dominance of diffuse and specular components is uncertain, the signs of $I_s\rho_s-I_d\rho_d$ of adjacent points will change frequently, so the observed polarization angles of adjacent pixels will generate $\frac{ \pi}{2}$ phase shift(the well-known **$\frac{\pi}{2}$- ambiguity**), this is why the background has more noise in the AoLP map.
+When the dominance of diffuse and specular components is uncertain, the signs of ![1](https://latex.codecogs.com/svg.image?I_s\rho_s-I_d\rho_d) of adjacent points will change frequently, so the observed polarization angles of adjacent pixels will generate ![1](https://latex.codecogs.com/svg.image?\frac{&space;\pi}{2}) phase shift(the well-known ![1](https://latex.codecogs.com/svg.image?\frac{&space;\pi}{2})- **ambiguity**), this is why the background has more noise in the AoLP map.
 
- Since the surface of the transparent object is smooth enough, it can be assumed that the observed light of the transparent object only contains specular reflection$I_r(\theta_{pol})$ and transmission$I_t(\theta_{pol})$:
+ Since the surface of the transparent object is smooth enough, it can be assumed that the observed light of the transparent object only contains specular reflection ![1](https://latex.codecogs.com/svg.image?I_r(\theta_{pol})) and transmission ![1](https://latex.codecogs.com/svg.image?I_t(\theta_{pol})):
 
 ![CodeCogsEqn](https://raw.githubusercontent.com/s1752729916/githubsshaomq.github.iogithub/master/CodeCogsEqn.svg)
 
 
 
-$I_{r0}$ is the light intensity value corresponding to the incident light. The diffuser in the experimental setup of this paper ensures that $I_{r0}$ in all directions have the same value, $T$ is the transmission coefficient, $\rho_r, \psi_r$ are the DoLP and AoLP of the specular reflection component on the surface of the transparent object, respectively, $\rho$ and$ \psi$ are DoLP and AoLP of the transparent object surface actually observed by the camera.
+ ![1](https://latex.codecogs.com/svg.image?I_{r0}) is the light intensity value corresponding to the incident light. The diffuser in the experimental setup of this paper ensures that ![1](https://latex.codecogs.com/svg.image?I_{r0}) in all directions have the same value,  ![1](https://latex.codecogs.com/svg.image?T) is the transmission coefficient,  ![1](https://latex.codecogs.com/svg.image?\rho_r,&space;\psi_r) are the DoLP and AoLP of the specular reflection component on the surface of the transparent object, respectively,  ![1](https://latex.codecogs.com/svg.image?\rho) and ![1](https://latex.codecogs.com/svg.image?\psi) are DoLP and AoLP of the transparent object surface actually observed by the camera.
 
 Rewrite the above formula into the following form:
 
@@ -125,13 +125,13 @@ Rewrite the above formula into the following form:
 
 
 
-We can get $\psi$ as follows:
+We can get ![1](https://latex.codecogs.com/svg.image?\psi) as follows:
 
 ![CodeCogsEqn (5)](https://raw.githubusercontent.com/s1752729916/githubsshaomq.github.iogithub/master/CodeCogsEqn%20(5).svg)
 
 
 
-Since the value of $I_{r0}$ is determined by the light source, $I_{t0}$ is determined by the reflection of the background, usually $\frac{I_{r0}}{I_{t0}}\approx10$ , and the value of $\frac{\rho_r}{\rho_t}$ is related to the transmission coefficient $T$, but generally greater than $1$. When $T$ is small, the transmission term can be ignored , that is, $\psi=\psi_r$; when $T\rightarrow1$ , $\psi$ will be disturbed by $\psi_t$ and appear noise as shown in above Figure.
+Since the value of ![1](https://latex.codecogs.com/svg.image?I_{r0}) is determined by the light source,  ![1](https://latex.codecogs.com/svg.image?I_{t0}) is determined by the reflection of the background, usually ![1](https://latex.codecogs.com/svg.image?\frac{I_{r0}}{I_{t0}}\approx10) , and the value of $\frac{\rho_r}{\rho_t}$ is related to the transmission coefficient  ![1](https://latex.codecogs.com/svg.image?T), but generally greater than 1. When ![1](https://latex.codecogs.com/svg.image?T) is small, the transmission term can be ignored , that is, ![1](https://latex.codecogs.com/svg.image?\psi=\psi_r); when ![1](https://latex.codecogs.com/svg.image?T\rightarrow1) , ![1](https://latex.codecogs.com/svg.image?\psi)  will be disturbed by ![1](https://latex.codecogs.com/svg.image?\psi_t) and appear noise as shown in above Figure.
 
 ## Citation
 
