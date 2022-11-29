@@ -1,17 +1,10 @@
 import torch
 import torch.nn as nn
-import math
-
-from torch.nn.init import kaiming_normal_
-import modeling.PS_FCN.model_utils as model_utils
-import modeling.utils.SKBlock as SKBlock
-import modeling.utils.ESPABlock as ESPABlock
 import torch.nn.functional as F
 from modeling.sync_batchnorm.batchnorm import SynchronizedBatchNorm2d
 from modeling.aspp import build_aspp
 from modeling.backbone import build_backbone
 from tensorboardX import SummaryWriter
-import matplotlib.pyplot as plt
 import numpy as np
 class FinalLayer(nn.Module):
     def __init__(self,input_channel):
@@ -31,27 +24,33 @@ class FinalLayer(nn.Module):
         x = self.conv2(x)
         return x
 
-class calibrator(nn.Module):
-    def __init__(self,in_channels,out_channels,output_size):
-        super(calibrator, self).__init__()
+class FusionModule(nn.Module):
+    def __init__(self,in_channels,out_channels,output_size,atten = False):
+        super(FusionModule, self).__init__()
         self.conv1 = nn.Conv2d(in_channels = in_channels,out_channels = in_channels,kernel_size=3,padding=3//2)
         self.leaky_relu = nn.LeakyReLU()
         self.bn1 = nn.InstanceNorm2d(num_features=in_channels)
-
+        self.atten = atten
 
         self.conv2 = nn.Conv2d(in_channels = in_channels,out_channels=out_channels,kernel_size=1)
         self.bn2 = nn.InstanceNorm2d(num_features=out_channels)
         self.size = output_size
-    def forward(self,x):
-        x = F.interpolate(x,size=(self.size,self.size),mode='bilinear',align_corners=False)
+
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self,x_raw,x_c,x_prior):
+        x_fusion = x_raw + self.sigmoid(x_c) * x_prior
+        x = F.interpolate(x_fusion,size=(self.size,self.size),mode='bilinear',align_corners=False)
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.leaky_relu(x)
+
+        if(self.atten):
+            x = self.attention(x)
         x = self.conv2(x)
         x = self.bn2(x)
         x = self.leaky_relu(x)
         return x
-
 class Attention(nn.Module):
     def __init__(self):
         super(Attention, self).__init__()
@@ -169,18 +168,17 @@ class TransSfPNet(nn.Module):
 
         self.decoder = decoder()
 
-        self.calibrator_0 = calibrator(in_channels=64,out_channels=16,output_size=512)
-        self.calibrator_1 = calibrator(in_channels=64,out_channels=32,output_size=256)
-        self.calibrator_2 = calibrator(in_channels=256,out_channels=64,output_size=128)
-        self.calibrator_3 = calibrator(in_channels=512,out_channels=128,output_size=64)
-        self.calibrator_4 = calibrator(in_channels=1024,out_channels=256,output_size=32)
+        self.fusion_module_0 = FusionModule(in_channels=64,out_channels=16,output_size=512)
+        self.fusion_module_1 = FusionModule(in_channels=64,out_channels=32,output_size=256)
+        self.fusion_module_2 = FusionModule(in_channels=256,out_channels=64,output_size=128)
+        self.fusion_module_3 = FusionModule(in_channels=512,out_channels=128,output_size=64)
+        self.fusion_module_4 = FusionModule(in_channels=1024,out_channels=256,output_size=32)
 
         self.sigmoid = nn.Sigmoid()
         self.softmax = nn.Softmax()
         if freeze_bn:
             self.freeze_bn()
 
-        self.attention_layer = Attention()
 
 
 
@@ -191,19 +189,20 @@ class TransSfPNet(nn.Module):
         img  = orig
         img_split = torch.split(img, 1, 1)
         aolp = img_split[1]
-        aolp = (torch.cos(2*aolp) + 1.0)/2.0
+        # aolp = (torch.cos(2*aolp) + 1.0)/2.0
 
         # get attention map
         mean_map = nn.functional.conv2d(aolp,self.mean_kernel,padding=self.kernel_size//2)
         abs_map = torch.abs(aolp - mean_map)
         abs_map = torch.pow(abs_map,self.m)
-        atten_map = nn.functional.conv2d(abs_map,self.sum_kernel_1,padding=self.kernel_size//2)
-        shape = atten_map.shape
-        atten_map = torch.reshape(atten_map,[shape[0],-1])
-        max_values,indices = torch.max(atten_map,dim = 1)
+        confidence_map = nn.functional.conv2d(abs_map,self.sum_kernel_1,padding=self.kernel_size//2)
+        shape = confidence_map.shape
+        confidence_map = torch.reshape(confidence_map,[shape[0],-1])
+        max_values,indices = torch.max(confidence_map,dim = 1)
         max_values = torch.reshape(max_values,[shape[0],1])
-        atten_map = torch.div(atten_map,max_values)
-        atten_map = torch.reshape(atten_map,[shape[0],shape[1],shape[2],shape[3]])
+        confidence_map = torch.div(confidence_map,max_values)
+        confidence_map = torch.reshape(confidence_map,[shape[0],shape[1],shape[2],shape[3]])
+        confidence_map = 1 - confidence_map
 
 
 
@@ -215,41 +214,33 @@ class TransSfPNet(nn.Module):
         x_prior, x_prior_0,x_prior_1,x_prior_2,x_prior_3,x_prior_4 = self.backbone_prior(prior)
         x_prior = self.aspp_prior(x_prior)
 
-        # attention branch
-        x_atten,x_atten_0,x_atten_1,x_atten_2,x_atten_3,x_atten_4 = self.backbone_atten(atten_map)
-        x_atten = self.aspp_atten(x_atten)
-        x_atten = self.sigmoid(x_atten)
-        x_atten_0 = self.sigmoid(x_atten_0)
-        x_atten_1 = self.sigmoid(x_atten_1)
-        x_atten_2 = self.sigmoid(x_atten_2)
-        x_atten_3 = self.sigmoid(x_atten_3)
-        x_atten_4 = self.sigmoid(x_atten_4)
-
-        # fusion step
-        x_prior = x_prior + self.attention_layer(x_atten,x_atten,x_prior)
 
 
-        x_fusion =  x_orig + (x_atten)*x_prior
-        x_fusion_0 = x_orig_0 + (x_atten_0)*x_prior_0
-        x_fusion_1 = x_orig_1 + (x_atten_1)*x_prior_1
-        x_fusion_2 = x_orig_2 + (x_atten_2)*x_prior_2
-        x_fusion_3 = x_orig_3 + (x_atten_3)*x_prior_3
-        x_fusion_4 = x_orig_4 + (x_atten_4)*x_prior_4
+
+        # confidence branch
+        x_c,x_c_0,x_c_1,x_c_2,x_c_3,x_c_4 = self.backbone_atten(confidence_map)
+        x_c = self.aspp_atten(x_c)        
+
 
 
 
-        x_fusion_0 = self.calibrator_0(x_fusion_0)
-        x_fusion_1 = self.calibrator_1(x_fusion_1)
-        x_fusion_2 = self.calibrator_2(x_fusion_2)
-        x_fusion_3 = self.calibrator_3(x_fusion_3)
-        x_fusion_4 = self.calibrator_4(x_fusion_4)
+        # fusion step
+        x_fusion = x_orig + self.sigmoid(x_c) * x_prior
+        
+
+
+        x_fusion_0 = self.fusion_module_0(x_orig_0,x_c_0,x_prior_0)
+        x_fusion_1 = self.fusion_module_1(x_orig_1,x_c_1,x_prior_1)
+        x_fusion_2 = self.fusion_module_2(x_orig_2,x_c_2,x_prior_2)
+        x_fusion_3 = self.fusion_module_3(x_orig_3,x_c_3,x_prior_3)
+        x_fusion_4 = self.fusion_module_4(x_orig_4,x_c_4,x_prior_4)
 
         # decode
         x = self.decoder(x_fusion,x_fusion_0,x_fusion_1,x_fusion_2,x_fusion_3,x_fusion_4)
 
 
 
-        return x,atten_map
+        return x,confidence_map
 
     def freeze_bn(self):
         for m in self.modules():
