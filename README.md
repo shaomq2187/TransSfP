@@ -1,5 +1,5 @@
 # TransSfP
-Repository for paper "Transparent Shape from a Single View Polarization Image"
+Repository for paper "Transparent Shape from a Single View Polarization Image" (ICCV 2023)
 
 We provide dataset and codes of TransSfP.
 
@@ -7,7 +7,7 @@ We provide dataset and codes of TransSfP.
 
 ## Abstract
 
-​	This paper presents a learning-based method for transparent surface estimation from a single view polarization image. Existing shape from polarization(SfP) methods have the difficulty in estimating transparent shape since the inherent transmission interference heavily reduces the reliability of physics-based prior. To address this challenge, we propose the concept of physics-based prior, which is inspired by the characteristic that the transmission component in the polarization image has more noise than reflection. The confidence is used to determine the contribution of the interfered physics-based prior. Then, we build a network(TransSfP) with multi-branch architecture to avoid the destruction of relationships between different hierarchical inputs. To train and test our method, we construct a dataset for transparent shape from polarization with paired polarization images and ground-truth normal maps. Extensive experiments and comparisons demonstrate the superior accuracy of our method. Our codes and data are provided in the supplements.
+​	This paper presents a learning-based method for transparent surface estimation from a single view polarization image. Existing shape from polarization(SfP) methods have the difficulty in estimating transparent shape since the inherent transmission interference heavily reduces the reliability of physics-based prior. To address this challenge, we propose the concept of physics-based prior, which is inspired by the characteristic that the transmission component in the polarization image has more noise than reflection. The confidence is used to determine the contribution of the interfered physics-based prior. Then, we build a network(TransSfP) with multi-branch architecture to avoid the destruction of relationships between different hierarchical inputs. To train and test our method, we construct a dataset for transparent shape from polarization with paired polarization images and ground-truth normal maps. Extensive experiments and comparisons demonstrate the superior accuracy of our method.
 
 ![image-20221129223722286](figures/image-20221129223722286.png)
 
